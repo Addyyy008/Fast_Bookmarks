@@ -54,7 +54,7 @@ export default function Home() {
 
       {/* Footer */}
       <footer className="mt-auto py-6 text-center text-sm text-gray-500">
-        <p>Smart Bookmark Manager - Built with Next.js & Supabase</p>
+        <p>Fast Bookmark Manager</p>
       </footer>
     </div>
   );
