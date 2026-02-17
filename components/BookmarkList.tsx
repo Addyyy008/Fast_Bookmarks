@@ -12,6 +12,7 @@ export default function BookmarkList() {
   const [user, setUser] = useState<any>(null);
   const supabase = createClient();
 
+  // Load user and initial bookmarks
   useEffect(() => {
     const fetchBookmarks = async () => {
       const { data: { user } } = await supabase.auth.getUser();
@@ -37,8 +38,12 @@ export default function BookmarkList() {
     };
 
     fetchBookmarks();
+  }, []);
 
-    // Set up real-time subscription
+  // Set up real-time subscription AFTER user is loaded
+  useEffect(() => {
+    if (!user) return;
+
     const channel = supabase
       .channel("bookmarks_changes")
       .on(
@@ -47,11 +52,11 @@ export default function BookmarkList() {
           event: "*",
           schema: "public",
           table: "bookmarks",
+          filter: `user_id=eq.${user.id}`,
         },
         (payload) => {
           if (payload.eventType === "INSERT") {
             setBookmarks((current) => {
-              // Avoid duplicates
               if (current.find((b) => b.id === payload.new.id)) {
                 return current;
               }
@@ -69,7 +74,7 @@ export default function BookmarkList() {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, []);
+  }, [user]);
 
   const handleBookmarkDeleted = (id: string) => {
     setBookmarks((current) => current.filter((b) => b.id !== id));
