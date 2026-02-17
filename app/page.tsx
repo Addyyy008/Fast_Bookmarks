@@ -22,7 +22,7 @@ export default function Home() {
           <div className="flex items-center gap-2">
             <BookmarkIcon className="w-8 h-8 text-blue-600" />
             <h1 className="text-2xl font-bold text-gray-900">
-              Smart Bookmarks
+              Fast Bookmarks
             </h1>
           </div>
           <AuthButton />
