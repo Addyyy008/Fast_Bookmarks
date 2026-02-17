@@ -44,35 +44,49 @@ export default function BookmarkList() {
   useEffect(() => {
     if (!user) return;
 
-    const channel = supabase
-      .channel("bookmarks_changes")
-      .on(
-        "postgres_changes",
-        {
-          event: "*",
-          schema: "public",
-          table: "bookmarks",
-          filter: `user_id=eq.${user.id}`,
-        },
-        (payload) => {
-          if (payload.eventType === "INSERT") {
-            setBookmarks((current) => {
-              if (current.find((b) => b.id === payload.new.id)) {
-                return current;
-              }
-              return [payload.new as Bookmark, ...current];
-            });
-          } else if (payload.eventType === "DELETE") {
-            setBookmarks((current) =>
-              current.filter((b) => b.id !== payload.old.id)
-            );
-          }
-        }
-      )
-      .subscribe();
+    const setupRealtime = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      
+      if (session?.access_token) {
+        supabase.realtime.setAuth(session.access_token);
+      }
 
+      const channel = supabase
+        .channel("bookmarks_changes")
+        .on(
+          "postgres_changes",
+          {
+            event: "*",
+            schema: "public",
+            table: "bookmarks",
+            filter: `user_id=eq.${user.id}`,
+          },
+          (payload) => {
+            if (payload.eventType === "INSERT") {
+              setBookmarks((current) => {
+                if (current.find((b) => b.id === payload.new.id)) {
+                  return current;
+                }
+                return [payload.new as Bookmark, ...current];
+              });
+            } else if (payload.eventType === "DELETE") {
+              setBookmarks((current) =>
+                current.filter((b) => b.id !== payload.old.id)
+              );
+            }
+          }
+        )
+        .subscribe();
+
+      return () => {
+        supabase.removeChannel(channel);
+      };
+    };
+
+    const cleanup = setupRealtime();
+    
     return () => {
-      supabase.removeChannel(channel);
+      cleanup.then((fn) => fn?.());
     };
   }, [user]);
 
