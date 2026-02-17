@@ -6,6 +6,34 @@ export function createClient() {
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
     {
+      cookies: {
+        get(name: string) {
+          const cookies = document.cookie.split(';');
+          for (const cookie of cookies) {
+            const [key, value] = cookie.trim().split('=');
+            if (key === name) {
+              return decodeURIComponent(value);
+            }
+          }
+          return undefined;
+        },
+        set(name: string, value: string, options: any) {
+          let cookie = `${name}=${encodeURIComponent(value)}`;
+          if (options?.maxAge) cookie += `; max-age=${options.maxAge}`;
+          if (options?.path) cookie += `; path=${options.path}`;
+          if (options?.domain) cookie += `; domain=${options.domain}`;
+          if (options?.secure) cookie += '; secure';
+          if (options?.httpOnly) cookie += '; httpOnly';
+          if (options?.sameSite) cookie += `; sameSite=${options.sameSite}`;
+          document.cookie = cookie;
+        },
+        remove(name: string, options: any) {
+          let cookie = `${name}=; max-age=0`;
+          if (options?.path) cookie += `; path=${options.path}`;
+          if (options?.domain) cookie += `; domain=${options.domain}`;
+          document.cookie = cookie;
+        },
+      },
       realtime: {
         params: {
           eventsPerSecond: 10,
@@ -13,3 +41,4 @@ export function createClient() {
       },
     }
   );
+}
