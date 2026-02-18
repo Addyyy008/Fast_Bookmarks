@@ -37,6 +37,37 @@ export default function BookmarkList() {
     };
 
     fetchBookmarks();
+
+    // Set up real-time subscription
+    const channel = supabase
+      .channel("bookmarks_changes")
+      .on(
+        "postgres_changes",
+        {
+          event: "*",
+          schema: "public",
+          table: "bookmarks",
+        },
+        (payload) => {
+          if (payload.eventType === "INSERT") {
+            setBookmarks((current) => {
+              if (current.find((b) => b.id === payload.new.id)) {
+                return current;
+              }
+              return [payload.new as Bookmark, ...current];
+            });
+          } else if (payload.eventType === "DELETE") {
+            setBookmarks((current) =>
+              current.filter((b) => b.id !== payload.old.id)
+            );
+          }
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, []);
 
   const handleBookmarkDeleted = (id: string) => {
