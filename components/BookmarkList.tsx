@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
-import { createRealtimeClient } from "@/lib/supabase/realtime-client";
 import { Bookmark } from "@/lib/types";
 import BookmarkItem from "./BookmarkItem";
 import { Loader2, BookmarkX } from "lucide-react";
@@ -38,64 +37,38 @@ export default function BookmarkList() {
     };
 
     fetchBookmarks();
-  }, []);
 
-  useEffect(() => {
-    if (!user) return;
-
-    let channel: any;
-
-    const setupRealtime = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      
-      if (!session?.access_token) {
-        console.error("No access token available for realtime");
-        return;
-      }
-
-      console.log("Setting up realtime with authenticated client...");
-
-      const realtimeClient = createRealtimeClient(session.access_token);
-
-      channel = realtimeClient
-        .channel("bookmarks_changes")
-        .on(
-          "postgres_changes",
-          {
-            event: "*",
-            schema: "public",
-            table: "bookmarks",
-            filter: `user_id=eq.${user.id}`,
-          },
-          (payload) => {
-            console.log("Realtime event:", payload.eventType);
-            if (payload.eventType === "INSERT") {
-              setBookmarks((current) => {
-                if (current.find((b) => b.id === payload.new.id)) {
-                  return current;
-                }
-                return [payload.new as Bookmark, ...current];
-              });
-            } else if (payload.eventType === "DELETE") {
-              setBookmarks((current) =>
-                current.filter((b) => b.id !== payload.old.id)
-              );
-            }
+    // Set up real-time subscription
+    const channel = supabase
+      .channel("bookmarks_changes")
+      .on(
+        "postgres_changes",
+        {
+          event: "*",
+          schema: "public",
+          table: "bookmarks",
+        },
+        (payload) => {
+          if (payload.eventType === "INSERT") {
+            setBookmarks((current) => {
+              if (current.find((b) => b.id === payload.new.id)) {
+                return current;
+              }
+              return [payload.new as Bookmark, ...current];
+            });
+          } else if (payload.eventType === "DELETE") {
+            setBookmarks((current) =>
+              current.filter((b) => b.id !== payload.old.id)
+            );
           }
-        )
-        .subscribe((status) => {
-          console.log("Realtime subscription status:", status);
-        });
-    };
-
-    setupRealtime();
+        }
+      )
+      .subscribe();
 
     return () => {
-      if (channel) {
-        supabase.removeChannel(channel);
-      }
+      supabase.removeChannel(channel);
     };
-  }, [user, supabase]);
+  }, []);
 
   const handleBookmarkDeleted = (id: string) => {
     setBookmarks((current) => current.filter((b) => b.id !== id));
