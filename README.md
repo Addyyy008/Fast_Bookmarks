@@ -155,5 +155,5 @@ my-app/
 
 ## License
 
-MIT
+MITT
 =======
