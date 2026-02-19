@@ -30,13 +30,6 @@ This project implements a personal bookmark manager with Google Sign-In, per-use
 
 ---
 
-## 🗂️ Project Structure
-
-my-app/ ├── app/ │ ├── auth/callback/route.ts # OAuth callback handler │ ├── globals.css # Global styles │ ├── layout.tsx # Root layout │ └── page.tsx # Main page ├── components/ │ ├── AuthButton.tsx # Sign in/out button │ ├── BookmarkForm.tsx # Add bookmark form │ ├── BookmarkItem.tsx # Individual bookmark item │ ├── BookmarkList.tsx # Real-time bookmark list │ └── Providers.tsx # App providers ├── lib/ │ ├── supabase/ │ │ ├── client.ts # Browser Supabase client │ │ └── server.ts # Server Supabase client │ ├── database.types.ts # Database types │ └── types.ts # App types ├── .env.local.example # Environment variables template └── README.md # This file
-
-
----
-
 ## 🧭 How It Works
 
 ### 🔐 Authentication Flow
