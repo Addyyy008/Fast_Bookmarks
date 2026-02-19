@@ -75,5 +75,18 @@ my-app/
 ## Deployment
 
 ### Deploy to Vercel
+Deployment notes
+Vercel auto-deploys on git push (if configured)
+If you make changes to env vars, redeploy or re-run a deployment
+For a fresh start, you can create a new Supabase project and repeat the steps, then update your app to point to the new URLs/keys
+
+
+Challenges I faced (honest, learning-focused)
+Setting up real-time with per-user auth on a new Supabase project
+Ensuring the token is passed to the WebSocket (auth flow for realtime)
+Handling a clean separation between auth client and realtime client to avoid token issues
+Debugging and validating end-to-end multi-tab workflows
+What’s next (ideas)
+
 
 =======
